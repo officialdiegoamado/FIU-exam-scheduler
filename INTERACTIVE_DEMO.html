@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 FIU Exam Scheduler - Interactive Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+        }
+        .tab.active {
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .tab:hover { background: #e9ecef; }
+        .content {
+            padding: 30px;
+            min-height: 500px;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn.secondary {
+            background: #6c757d;
+        }
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .course-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .course-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .course-code {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        .course-title {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .course-details {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .status {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .api-demo {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        .api-endpoint {
+            font-family: 'Monaco', 'Menlo', monospace;
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .response {
+            background: #1a202c;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .feature-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        .exam-card {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 1px solid #f0f0f0;
+        }
+        .exam-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .midterm { background: #fff3cd; color: #856404; }
+        .final { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 FIU Exam Scheduler</h1>
+            <p>Interactive Demo - Full-Stack University Scheduling System</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('login')">🔐 Authentication</button>
+            <button class="tab" onclick="showTab('courses')">📚 Courses</button>
+            <button class="tab" onclick="showTab('schedule')">📅 My Schedule</button>
+            <button class="tab" onclick="showTab('exams')">📝 Exams</button>
+            <button class="tab" onclick="showTab('api')">⚡ API Demo</button>
+        </div>
+        
+        <div class="content">
+            <!-- Login Tab -->
+            <div id="login" class="tab-content active">
+                <h2>🔐 Authentication System</h2>
+                <div class="login-form">
+                    <h3>Admin Login</h3>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" value="admin@fiu.edu" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" value="admin123" readonly>
+                    </div>
+                    <button class="btn" onclick="simulateLogin('admin')">Login as Admin</button>
+                    <button class="btn secondary" onclick="simulateLogin('student')">Register as Student</button>
+                </div>
+                
+                <div class="api-demo">
+                    <h4>🔧 What Happens Behind the Scenes:</h4>
+                    <div class="api-endpoint">POST /api/auth/login
+{
+  "email": "admin@fiu.edu",
+  "password": "admin123"
+}</div>
+                    <div class="response">✅ Response:
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4ODBl...",
+  "role": "admin"
+}</div>
+                    <p><strong>Security Features:</strong></p>
+                    <ul>
+                        <li>✅ JWT Token Authentication (24-hour expiration)</li>
+                        <li>✅ BCrypt Password Hashing</li>
+                        <li>✅ Role-based Access Control</li>
+                        <li>✅ Secure Session Management</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Courses Tab -->
+            <div id="courses" class="tab-content">
+                <h2>📚 Course Management</h2>
+                <input type="text" class="search-box" placeholder="🔍 Search courses by name or code..." onkeyup="filterCourses(this.value)">
+                
+                <div class="course-grid" id="courseGrid">
+                    <div class="course-card" data-course="programming">
+                        <div class="course-code">COP2210</div>
+                        <div class="course-title">Programming I</div>
+                        <div class="course-details">
+                            <div>👨‍🏫 Dr. John Smith</div>
+                            <div>🏛️ CS Department</div>
+                            <div>📍 ECS 134 | ⏰ Mon/Wed 9:00-10:15</div>
+                            <div>👥 <span class="seats">15</span>/30 seats available</div>
+                        </div>
+                        <button class="btn" onclick="enrollInCourse('COP2210')">Enroll Now</button>
+                    </div>
+                    
+                    <div class="course-card" data-course="programming">
+                        <div class="course-code">COP3337</div>
+                        <div class="course-title">Programming II</div>
+                        <div class="course-details">
+                            <div>👨‍🏫 Dr. Robert Johnson</div>
+                            <div>🏛️ CS Department</div>
+                            <div>📍 ECS 142 | ⏰ Tue/Thu 11:00-12:15</div>
+                            <div>👥 <span class="seats">7</span>/25 seats available</div>
+                        </div>
+                        <button class="btn" onclick="enrollInCourse('COP3337')">Enroll Now</button>
+                    </div>
+                    
+                    <div class="course-card" data-course="math">
+                        <div class="course-code">MAD2104</div>
+                        <div class="course-title">Discrete Mathematics</div>
+                        <div class="course-details">
+                            <div>👩‍🏫 Dr. Maria Garcia</div>
+                            <div>🏛️ MATH Department</div>
+                            <div>📍 DM 413 | ⏰ Thu 4:00-5:15 PM</div>
+                            <div>👥 <span class="seats">13</span>/35 seats available</div>
+                        </div>
+                        <button class="btn" onclick="enrollInCourse('MAD2104')">Enroll Now</button>
+                    </div>
+                    
+                    <div class="course-card" data-course="programming">
+                        <div class="course-code">COP3530</div>
+                        <div class="course-title">Data Structures</div>
+                        <div class="course-details">
+                            <div>👨‍🏫 Dr. John Smith</div>
+                            <div>🏛️ CS Department</div>
+                            <div>📍 ECS 152 | ⏰ Fri 10:00-11:15</div>
+                            <div>👥 <span class="seats">18</span>/28 seats available</div>
+                        </div>
+                        <button class="btn" onclick="enrollInCourse('COP3530')">Enroll Now</button>
+                    </div>
+                    
+                    <div class="course-card" data-course="math">
+                        <div class="course-code">MAC2311</div>
+                        <div class="course-title">Calculus I</div>
+                        <div class="course-details">
+                            <div>👩‍🏫 Dr. Maria Garcia</div>
+                            <div>🏛️ MATH Department</div>
+                            <div>📍 DM 423 | ⏰ Mon 12:30-1:45 PM</div>
+                            <div>👥 <span class="seats">15</span>/40 seats available</div>
+                        </div>
+                        <button class="btn" onclick="enrollInCourse('MAC2311')">Enroll Now</button>
+                    </div>
+                </div>
+                
+                <div class="api-demo">
+                    <h4>🔧 Real-time Enrollment API:</h4>
+                    <div class="api-endpoint">POST /api/schedule/enroll
+Authorization: Bearer [JWT-TOKEN]
+{
+  "sectionId": "770e8400-e29b-41d4-a716-446655440001"
+}</div>
+                    <div class="response">✅ Response:
+{
+  "status": "enrolled",
+  "message": "Successfully enrolled in Programming I"
+}
+// Real-time updates: seat count decreases instantly!</div>
+                </div>
+            </div>
+            
+            <!-- Schedule Tab -->
+            <div id="schedule" class="tab-content">
+                <h2>📅 My Class Schedule</h2>
+                <div id="enrolledCourses">
+                    <p>📝 Enroll in courses to see your schedule here!</p>
+                </div>
+                
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <h4>🔄 Real-time Updates</h4>
+                        <p>Schedule changes appear instantly across all devices</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>⚠️ Conflict Detection</h4>
+                        <p>Prevents enrollment in overlapping time slots</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>📊 Capacity Tracking</h4>
+                        <p>Live seat availability with automatic updates</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>📱 Mobile Responsive</h4>
+                        <p>Access your schedule from any device</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Exams Tab -->
+            <div id="exams" class="tab-content">
+                <h2>📝 Exam Schedule</h2>
+                
+                <div class="exam-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3>Programming I - COP2210</h3>
+                            <p>📅 March 15, 2024 | ⏰ 9:00 AM - 10:30 AM</p>
+                            <p>📍 ECS 134 | 👨‍🏫 Dr. John Smith</p>
+                        </div>
+                        <span class="exam-type midterm">Midterm</span>
+                    </div>
+                </div>
+                
+                <div class="exam-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3>Programming II - COP3337</h3>
+                            <p>📅 March 20, 2024 | ⏰ 2:00 PM - 3:30 PM</p>
+                            <p>📍 ECS 134 | 👨‍🏫 Dr. Robert Johnson</p>
+                        </div>
+                        <span class="exam-type midterm">Midterm</span>
+                    </div>
+                </div>
+                
+                <div class="exam-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3>Data Structures - COP3530</h3>
+                            <p>📅 April 10, 2024 | ⏰ 11:00 AM - 12:30 PM</p>
+                            <p>📍 ECS 142 | 👨‍🏫 Dr. John Smith</p>
+                        </div>
+                        <span class="exam-type final">Final</span>
+                    </div>
+                </div>
+                
+                <div class="api-demo">
+                    <h4>🔧 Admin Exam Management:</h4>
+                    <div class="api-endpoint">POST /api/admin/exams
+Authorization: Bearer [ADMIN-JWT-TOKEN]
+{
+  "sectionId": "770e8400-e29b-41d4-a716-446655440001",
+  "examDate": "2024-05-15",
+  "startTime": "14:00",
+  "endTime": "15:30",
+  "location": "ECS 142",
+  "examType": "final"
+}</div>
+                </div>
+            </div>
+            
+            <!-- API Demo Tab -->
+            <div id="api" class="tab-content">
+                <h2>⚡ Live API Demonstration</h2>
+                
+                <div class="api-demo">
+                    <h3>🔍 Course Search API</h3>
+                    <div class="api-endpoint">GET /api/courses?query=programming&department=CS</div>
+                    <div class="response">[
+  {
+    "id": "660e8400-e29b-41d4-a716-446655440001",
+    "code": "COP2210",
+    "title": "Programming I",
+    "department": "CS"
+  },
+  {
+    "id": "660e8400-e29b-41d4-a716-446655440002",
+    "code": "COP3337", 
+    "title": "Programming II",
+    "department": "CS"
+  }
+]</div>
+                </div>
+                
+                <div class="api-demo">
+                    <h3>📊 Available Sections API</h3>
+                    <div class="api-endpoint">GET /api/sections</div>
+                    <div class="response">[
+  {
+    "id": "770e8400-e29b-41d4-a716-446655440001",
+    "courseCode": "COP2210",
+    "title": "Programming I",
+    "time": "09:00-10:15",
+    "room": "ECS 134",
+    "instructor": "Dr. John Smith",
+    "capacity": 30,
+    "available": 15
+  }
+]</div>
+                </div>
+                
+                <div class="api-demo">
+                    <h3>📅 Personal Exam Schedule API</h3>
+                    <div class="api-endpoint">GET /api/exams/my
+Authorization: Bearer [JWT-TOKEN]</div>
+                    <div class="response">[
+  {
+    "id": "990e8400-e29b-41d4-a716-446655440001",
+    "courseCode": "COP2210",
+    "courseTitle": "Programming I",
+    "examDate": "2024-03-15",
+    "startTime": "09:00",
+    "endTime": "10:30",
+    "location": "ECS 134",
+    "examType": "midterm",
+    "instructor": "Dr. John Smith"
+  }
+]</div>
+                </div>
+                
+                <h3>🚀 Complete API Features:</h3>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <h4>🔐 Authentication</h4>
+                        <p>JWT-based secure login/register</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>📚 Course Management</h4>
+                        <p>Search, filter, and browse courses</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>📝 Enrollment</h4>
+                        <p>Enroll/drop with capacity tracking</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>📅 Exam Scheduling</h4>
+                        <p>View and manage exam schedules</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>👑 Admin Functions</h4>
+                        <p>Create/manage exams and sections</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>🔄 Real-time Updates</h4>
+                        <p>SSE for live enrollment changes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let enrolledCourses = [];
+        
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+        
+        function simulateLogin(role) {
+            const status = document.createElement('div');
+            status.className = 'status success';
+            if (role === 'admin') {
+                status.innerHTML = '✅ Logged in as Administrator! JWT token generated and stored.';
+            } else {
+                status.innerHTML = '✅ Student account created! Welcome to FIU Exam Scheduler.';
+            }
+            
+            document.querySelector('.login-form').appendChild(status);
+            
+            setTimeout(() => {
+                status.remove();
+                showTab('courses');
+                document.querySelector('.tab[onclick="showTab(\'courses\')"]').classList.add('active');
+                document.querySelector('.tab[onclick="showTab(\'login\')"]').classList.remove('active');
+            }, 2000);
+        }
+        
+        function enrollInCourse(courseCode) {
+            const courseCard = event.target.closest('.course-card');
+            const seatsSpan = courseCard.querySelector('.seats');
+            const currentSeats = parseInt(seatsSpan.textContent);
+            
+            if (currentSeats > 0) {
+                // Update seat count
+                seatsSpan.textContent = currentSeats - 1;
+                
+                // Add to enrolled courses
+                const courseTitle = courseCard.querySelector('.course-title').textContent;
+                const courseDetails = courseCard.querySelector('.course-details').innerHTML;
+                
+                enrolledCourses.push({
+                    code: courseCode,
+                    title: courseTitle,
+                    details: courseDetails
+                });
+                
+                // Show success message
+                const status = document.createElement('div');
+                status.className = 'status success';
+                status.innerHTML = `✅ Successfully enrolled in ${courseCode} - ${courseTitle}!`;
+                courseCard.appendChild(status);
+                
+                // Update button
+                event.target.textContent = '✓ Enrolled';
+                event.target.style.background = '#28a745';
+                event.target.disabled = true;
+                
+                // Update schedule tab
+                updateSchedule();
+                
+                setTimeout(() => status.remove(), 3000);
+            } else {
+                alert('❌ Course is full!');
+            }
+        }
+        
+        function updateSchedule() {
+            const scheduleDiv = document.getElementById('enrolledCourses');
+            if (enrolledCourses.length === 0) {
+                scheduleDiv.innerHTML = '<p>📝 Enroll in courses to see your schedule here!</p>';
+                return;
+            }
+            
+            let html = '<h3>📚 Your Enrolled Courses:</h3>';
+            enrolledCourses.forEach(course => {
+                html += `
+                    <div class="course-card">
+                        <div class="course-code">${course.code}</div>
+                        <div class="course-title">${course.title}</div>
+                        <div class="course-details">${course.details}</div>
+                        <button class="btn secondary" onclick="dropCourse('${course.code}')">Drop Course</button>
+                    </div>
+                `;
+            });
+            scheduleDiv.innerHTML = html;
+        }
+        
+        function dropCourse(courseCode) {
+            enrolledCourses = enrolledCourses.filter(course => course.code !== courseCode);
+            updateSchedule();
+            
+            // Reset the enrollment button for this course
+            const courseCards = document.querySelectorAll('.course-card');
+            courseCards.forEach(card => {
+                const code = card.querySelector('.course-code').textContent;
+                if (code === courseCode) {
+                    const button = card.querySelector('button');
+                    button.textContent = 'Enroll Now';
+                    button.style.background = '';
+                    button.disabled = false;
+                    
+                    // Increase seat count
+                    const seatsSpan = card.querySelector('.seats');
+                    const currentSeats = parseInt(seatsSpan.textContent);
+                    seatsSpan.textContent = currentSeats + 1;
+                }
+            });
+        }
+        
+        function filterCourses(searchTerm) {
+            const courseCards = document.querySelectorAll('.course-card');
+            const term = searchTerm.toLowerCase();
+            
+            courseCards.forEach(card => {
+                const code = card.querySelector('.course-code').textContent.toLowerCase();
+                const title = card.querySelector('.course-title').textContent.toLowerCase();
+                
+                if (code.includes(term) || title.includes(term) || term === '') {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html> 
